@@ -1,9 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
 app = FastAPI()
-
 # CORS 설정 (프론트엔드와 통신 가능)
 app.add_middleware(
     CORSMiddleware,
@@ -15,7 +13,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # 더미 학생 데이터
 STUDENTS_DB = {
     "minjae@cec.com": {
@@ -47,12 +44,21 @@ STUDENTS_DB = {
     }
 }
 
+# 관리자 계정 데이터
+ADMIN_DB = {
+    "admin@cec.com": {
+        "name": "CEC Admin",
+        "password": "admin123",
+        "role": "admin"
+    }
+}
+
 # 요청 모델
 class LoginRequest(BaseModel):
     email: str
     password: str
 
-# 로그인 API
+# 학생 로그인 API
 @app.post("/api/login")
 async def login(request: LoginRequest):
     student = STUDENTS_DB.get(request.email)
@@ -68,6 +74,21 @@ async def login(request: LoginRequest):
         "joined": student["joined"],
         "progress": student["progress"],
         "scores": student["scores"]
+    }
+
+# 관리자 로그인 API
+@app.post("/api/admin/login")
+async def admin_login(request: LoginRequest):
+    admin = ADMIN_DB.get(request.email)
+    
+    if not admin or admin["password"] != request.password:
+        return {"success": False, "message": "Invalid admin credentials"}
+    
+    return {
+        "success": True,
+        "name": admin["name"],
+        "role": admin["role"],
+        "message": "Admin login successful"
     }
 
 # 학생 정보 API
