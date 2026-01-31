@@ -3,4 +3,3 @@ uvicorn==0.24.0
 pydantic==2.5.0
 psycopg2-binary==2.9.11
 sqlalchemy==2.0.23
-python-cors==4.0.0
