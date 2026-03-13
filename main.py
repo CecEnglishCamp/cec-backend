@@ -1,13 +1,18 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from openai import OpenAI
+import os
+
 app = FastAPI()
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 # CORS 설정 (프론트엔드와 통신 가능)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://cec-english-camp.vercel.app"
+        "https://cec-english-camp.vercel.app",
+        "https://cecenglishcamp.github.io"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -108,6 +113,19 @@ async def get_student(email: str):
         "progress": student["progress"],
         "scores": student["scores"]
     }
+
+# Camp C AI 튜터 채팅
+@app.post("/camp-c/chat")
+async def camp_c_chat(request: Request):
+    body = await request.json()
+    messages = body.get("messages", [])
+    system_prompt = body.get("system_prompt", "")
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "system", "content": system_prompt}] + messages,
+        max_tokens=300
+    )
+    return {"reply": response.choices[0].message.content}
 
 # 테스트 엔드포인트
 @app.get("/")
